@@ -122,7 +122,7 @@ function ResponseCard({
     <div className={styles.card}>
       <div className={styles.cardHead}>
         <span>#{number}</span>
-        <span>{new Date(response.submitted_at).toLocaleString()}</span>
+        <span>{formatTimestamp(response.submitted_at)}</span>
       </div>
       {questions.map((q) => {
         const formatted = formatAnswer(q, response.answers[q.id]);
@@ -137,6 +137,21 @@ function ResponseCard({
       })}
     </div>
   );
+}
+
+/** Calm timestamp: "Jun 1, 2026 · 11:30 AM" (no seconds). */
+function formatTimestamp(iso: string): string {
+  const d = new Date(iso);
+  const date = d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  const time = d.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  return `${date} · ${time}`;
 }
 
 /** Render an answer value for display, by question type. null → no answer. */
