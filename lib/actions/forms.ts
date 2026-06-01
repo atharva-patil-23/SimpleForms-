@@ -44,7 +44,7 @@ export interface SaveFormInput {
 export async function saveForm(
   input: SaveFormInput,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { supabase } = await requireUser();
+  const { supabase, user } = await requireUser();
 
   let questions: Question[];
   try {
@@ -60,7 +60,8 @@ export async function saveForm(
       description: input.description?.trim() || null,
       schema: questions,
     })
-    .eq("id", input.id);
+    .eq("id", input.id)
+    .eq("owner_id", user.id);
 
   if (error) return { ok: false, error: "Couldn't save. Please try again." };
 
@@ -72,13 +73,14 @@ export async function saveForm(
 export async function publishForm(
   id: string,
 ): Promise<{ ok: true; slug: string } | { ok: false; error: string }> {
-  const { supabase } = await requireUser();
+  const { supabase, user } = await requireUser();
 
-  // Re-read the form to validate it's publishable (≥1 question).
+  // Re-read the form to validate it's publishable (≥1 question). Owner-scoped.
   const { data: form } = await supabase
     .from("forms")
     .select("schema, public_slug")
     .eq("id", id)
+    .eq("owner_id", user.id)
     .single();
 
   const questions = (form?.schema as Question[]) ?? [];
@@ -95,7 +97,8 @@ export async function publishForm(
       const { error } = await supabase
         .from("forms")
         .update({ status: "published", public_slug: candidate })
-        .eq("id", id);
+        .eq("id", id)
+        .eq("owner_id", user.id);
       if (!error) {
         slug = candidate;
         break;
@@ -112,7 +115,8 @@ export async function publishForm(
     const { error } = await supabase
       .from("forms")
       .update({ status: "published" })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("owner_id", user.id);
     if (error) return { ok: false, error: "Couldn't publish. Please try again." };
   }
 
@@ -122,15 +126,19 @@ export async function publishForm(
 }
 
 export async function unpublishForm(id: string) {
-  const { supabase } = await requireUser();
-  await supabase.from("forms").update({ status: "draft" }).eq("id", id);
+  const { supabase, user } = await requireUser();
+  await supabase
+    .from("forms")
+    .update({ status: "draft" })
+    .eq("id", id)
+    .eq("owner_id", user.id);
   revalidatePath(`/forms/${id}`);
   revalidatePath("/dashboard");
 }
 
 export async function deleteForm(id: string) {
-  const { supabase } = await requireUser();
-  await supabase.from("forms").delete().eq("id", id);
+  const { supabase, user } = await requireUser();
+  await supabase.from("forms").delete().eq("id", id).eq("owner_id", user.id);
   revalidatePath("/dashboard");
   redirect("/dashboard");
 }

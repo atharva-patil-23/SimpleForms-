@@ -4,6 +4,7 @@
  * enforced by middleware; we still read the user for owner scoping via RLS.
  */
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Vault, type VaultForm } from "@/components/app/Vault";
 import { CopyLink } from "@/components/app/CopyLink";
@@ -24,11 +25,19 @@ interface FormRow {
 
 export default async function DashboardPage() {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   // Single embedded-count query — responses(count) is aggregated by PostgREST.
+  // owner_id is filtered EXPLICITLY: the forms table also has an "anyone can
+  // read published" RLS policy (for the public /f path), so RLS alone would
+  // leak every published form into this list. Scope to the signed-in owner.
   const { data } = await supabase
     .from("forms")
     .select("id, title, status, public_slug, updated_at, responses(count)")
+    .eq("owner_id", user.id)
     .order("updated_at", { ascending: false });
 
   const forms = (data ?? []) as FormRow[];

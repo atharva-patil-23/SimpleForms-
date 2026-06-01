@@ -181,6 +181,46 @@ describe("RLS — the security spine (8 assertions)", () => {
     expect(responses.data ?? []).toHaveLength(0);
   });
 
+  it("8b. REGRESSION: published forms are visible to OTHER authed users via the published-read policy, so the app must filter owner_id for 'my forms' lists", async () => {
+    // userB can see userA's PUBLISHED form through the "anyone reads published"
+    // policy (this is intended — it powers the public /f path). A naive
+    // dashboard query relying on RLS alone would therefore leak it. The fix is
+    // an explicit owner_id filter in the app, asserted here.
+    const leaky = await userB
+      .from("forms")
+      .select("id")
+      .eq("id", publishedFormId)
+      .maybeSingle();
+    expect(leaky.data?.id).toBe(publishedFormId); // visible (published policy)
+
+    const scoped = await userB
+      .from("forms")
+      .select("id")
+      .eq("id", publishedFormId)
+      .eq("owner_id", userAId) // userB is not the owner...
+      .maybeSingle();
+    // ...but this is how the app queries its OWN forms: filtered to the caller.
+    // Simulate userB listing *their* forms — userA's form must not appear.
+    const myForms = await userB
+      .from("forms")
+      .select("id, owner_id")
+      .order("updated_at", { ascending: false });
+    const leakedIntoList = (myForms.data ?? []).some(
+      (f) => f.id === publishedFormId,
+    );
+    expect(leakedIntoList).toBe(true); // confirms the leak exists at the RLS layer
+    expect(scoped.data).not.toBeNull(); // the row matches the explicit filter values
+    // The app-side guarantee: when userB lists with .eq('owner_id', <their id>),
+    // userA's form is excluded.
+    const correctlyScoped = await userB
+      .from("forms")
+      .select("id")
+      .eq("owner_id", /* userB's own id */ (await userB.auth.getUser()).data.user!.id);
+    expect(
+      (correctlyScoped.data ?? []).some((f) => f.id === publishedFormId),
+    ).toBe(false);
+  });
+
   it("8. anon response-count RPC works (the cap primitive)", async () => {
     const { data, error } = await anonClient().rpc(
       "published_form_response_count",

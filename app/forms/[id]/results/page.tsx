@@ -5,7 +5,7 @@
  * 14; load-all is fine at side-project scale (pagination → TODOS.md).
  */
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Vault, type VaultForm } from "@/components/app/Vault";
 import type { Question } from "@/lib/schema";
@@ -28,12 +28,25 @@ export default async function ResultsPage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
+  // Owner-scoped explicitly. The responses query below is already owner-scoped
+  // by RLS (owner reads responses to own forms), but the form-title load and
+  // the vault list need the explicit owner filter (published-read policy).
   const [{ data: form }, { data: list }] = await Promise.all([
-    supabase.from("forms").select("id, title").eq("id", id).maybeSingle(),
+    supabase
+      .from("forms")
+      .select("id, title")
+      .eq("id", id)
+      .eq("owner_id", user.id)
+      .maybeSingle(),
     supabase
       .from("forms")
       .select("id, title, status")
+      .eq("owner_id", user.id)
       .order("updated_at", { ascending: false }),
   ]);
 

@@ -3,7 +3,7 @@
  * vault list, then hands off to the client FormEditor. A form the user doesn't
  * own simply isn't returned → not-found.
  */
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Vault, type VaultForm } from "@/components/app/Vault";
 import { FormEditor, type EditQuestion } from "@/components/app/FormEditor";
@@ -19,16 +19,24 @@ export default async function EditFormPage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
+  // Owner-scoped explicitly (the published-read RLS policy would otherwise
+  // expose other users' published forms here).
   const [{ data: form }, { data: list }] = await Promise.all([
     supabase
       .from("forms")
       .select("id, title, description, schema, status, public_slug")
       .eq("id", id)
+      .eq("owner_id", user.id)
       .maybeSingle(),
     supabase
       .from("forms")
       .select("id, title, status")
+      .eq("owner_id", user.id)
       .order("updated_at", { ascending: false }),
   ]);
 
