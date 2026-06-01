@@ -76,6 +76,10 @@ export function FormEditor({
   const [error, setError] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Empty on the server and the first client render (so the share link
+  // hydrates without a mismatch), upgraded to the absolute origin after mount.
+  const [origin, setOrigin] = useState("");
+  useEffect(() => setOrigin(window.location.origin), []);
 
   // Mark dirty whenever content changes so we can show "unsaved".
   const dirty = useRef(false);
@@ -190,12 +194,7 @@ export function FormEditor({
     await deleteForm(formId);
   }
 
-  const shareUrl =
-    slug && typeof window !== "undefined"
-      ? `${window.location.origin}/f/${slug}`
-      : slug
-        ? `/f/${slug}`
-        : null;
+  const shareUrl = slug ? `${origin}/f/${slug}` : null;
 
   return (
     <main className={shell.main}>
