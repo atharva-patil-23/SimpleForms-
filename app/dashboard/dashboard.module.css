@@ -1,0 +1,71 @@
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.rowMain {
+  min-width: 0;
+}
+.rowTitle {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.rowTitle:hover {
+  color: var(--cobalt);
+}
+.rowMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--mut);
+}
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pill {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 5px;
+  text-transform: lowercase;
+}
+.pillPub {
+  background: var(--cobalt-tint);
+  color: var(--cobalt-deep);
+}
+.pillDraft {
+  background: var(--fill);
+  color: var(--mut);
+  border: 1px solid var(--line);
+}
+
+.empty {
+  padding: 60px 0;
+  text-align: center;
+}
+.emptyTitle {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin-bottom: 8px;
+}
+.emptySub {
+  color: var(--mut);
+  font-size: 15px;
+}

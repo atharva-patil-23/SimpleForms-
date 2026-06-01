@@ -1,0 +1,66 @@
+/**
+ * Builder editor page (RSC). Loads one form (owner-scoped by RLS) plus the
+ * vault list, then hands off to the client FormEditor. A form the user doesn't
+ * own simply isn't returned → not-found.
+ */
+import { notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { Vault, type VaultForm } from "@/components/app/Vault";
+import { FormEditor, type EditQuestion } from "@/components/app/FormEditor";
+import type { Question } from "@/lib/schema";
+import shell from "@/components/app/app.module.css";
+
+export const dynamic = "force-dynamic";
+
+export default async function EditFormPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const supabase = await createClient();
+
+  const [{ data: form }, { data: list }] = await Promise.all([
+    supabase
+      .from("forms")
+      .select("id, title, description, schema, status, public_slug")
+      .eq("id", id)
+      .maybeSingle(),
+    supabase
+      .from("forms")
+      .select("id, title, status")
+      .order("updated_at", { ascending: false }),
+  ]);
+
+  if (!form) notFound();
+
+  const questions = ((form.schema as Question[]) ?? []).map(
+    (q): EditQuestion => ({
+      id: q.id,
+      type: q.type,
+      title: q.title,
+      description: q.description,
+      required: q.required ?? false,
+      options:
+        q.type === "single_select" || q.type === "multi_select"
+          ? q.options
+          : undefined,
+    }),
+  );
+
+  const vaultForms = (list ?? []) as VaultForm[];
+
+  return (
+    <div className={shell.shell}>
+      <Vault forms={vaultForms} activeId={id} />
+      <FormEditor
+        formId={form.id}
+        initialTitle={form.title}
+        initialDescription={form.description ?? ""}
+        initialQuestions={questions}
+        status={form.status}
+        slug={form.public_slug}
+      />
+    </div>
+  );
+}
