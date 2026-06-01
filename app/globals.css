@@ -62,8 +62,15 @@ textarea {
   color: var(--faint);
 }
 
-/* A focus ring that matches the cobalt accent, used app-wide. */
+/* Cobalt focus ring for keyboard users, app-wide. Text inputs and textareas
+   supply their own box-shadow ring on focus, so they opt out here to avoid a
+   doubled-up ring. */
 :focus-visible {
+  outline: 2px solid var(--cobalt);
+  outline-offset: 2px;
+}
+input:focus-visible,
+textarea:focus-visible {
   outline: none;
 }
 
