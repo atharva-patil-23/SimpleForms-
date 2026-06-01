@@ -1,0 +1,298 @@
+/* The respondent filling experience — the locked hero surface (variant-FILL).
+   One question at a time on a clean light canvas, same tokens as the builder. */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.progress {
+  height: 3px;
+  background: var(--line);
+  position: relative;
+  flex-shrink: 0;
+}
+.progressBar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--cobalt);
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 40px;
+}
+.mark {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+.markDot {
+  width: 13px;
+  height: 13px;
+  border-radius: 4px;
+  background: var(--cobalt);
+}
+.step {
+  font-size: 13px;
+  color: var(--mut);
+  font-weight: 500;
+}
+
+.stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 32px 70px;
+}
+.card {
+  width: 100%;
+  max-width: 600px;
+}
+
+/* Per-question enter animation — calm, glassy. */
+.enter {
+  animation: rise 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.qhead {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.num {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--cobalt);
+  line-height: 1;
+}
+.title {
+  font-size: 34px;
+  line-height: 1.18;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.sub {
+  font-size: 17px;
+  color: var(--mut);
+  margin: 0 0 30px 36px;
+}
+.field {
+  margin-left: 36px;
+}
+
+.input {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: var(--fill);
+  border-radius: 10px;
+  outline: none;
+  font-size: 19px;
+  color: var(--text);
+  padding: 15px 17px;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    background 0.15s;
+}
+.input::placeholder {
+  color: var(--faint);
+}
+.input:focus {
+  border-color: var(--cobalt);
+  box-shadow: 0 0 0 4px rgba(58, 85, 255, 0.16);
+  background: #fff;
+}
+textarea.input {
+  resize: vertical;
+  min-height: 120px;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+/* Option chips (select / yes-no). */
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.optionsRow {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--fill);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 17px;
+  color: var(--text);
+  text-align: left;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
+}
+.option:hover {
+  border-color: var(--faint);
+}
+.optionSelected {
+  background: var(--text);
+  border-color: var(--text);
+  color: #fff;
+}
+.optionKey {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--mut);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 1px 7px;
+  background: #fff;
+}
+.optionSelected .optionKey {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+  background: transparent;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--cobalt);
+  color: #fff;
+  border: 0;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 12px 26px;
+  transition: background 0.12s;
+}
+.cta:hover {
+  background: var(--cobalt-deep);
+}
+.cta:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.back {
+  background: none;
+  border: 0;
+  color: var(--mut);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 4px;
+}
+.back:hover {
+  color: var(--text);
+}
+.hint {
+  font-size: 13px;
+  color: var(--mut);
+}
+.hint b {
+  color: var(--text);
+  font-weight: 600;
+}
+.error {
+  color: #c8372d;
+  font-size: 14px;
+  margin-top: 12px;
+  margin-left: 36px;
+}
+
+.foot {
+  padding: 0 40px 26px;
+  font-size: 12px;
+  color: var(--faint);
+}
+.foot a {
+  color: var(--mut);
+  font-weight: 600;
+}
+
+/* Success + closed states share a centered layout. */
+.centered {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 32px 70px;
+}
+.bigTitle {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin-bottom: 10px;
+}
+.bigSub {
+  font-size: 17px;
+  color: var(--mut);
+  max-width: 420px;
+  line-height: 1.5;
+}
+.check {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--cobalt-tint);
+  color: var(--cobalt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin-bottom: 22px;
+}
+
+@media (max-width: 560px) {
+  .nav {
+    padding: 18px 22px;
+  }
+  .stage {
+    padding: 0 22px 50px;
+    align-items: flex-start;
+    padding-top: 32px;
+  }
+  .title {
+    font-size: 27px;
+  }
+  .sub,
+  .field,
+  .error {
+    margin-left: 0;
+  }
+  .qhead {
+    margin-bottom: 12px;
+  }
+}
