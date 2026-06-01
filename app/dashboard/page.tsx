@@ -7,6 +7,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Vault, type VaultForm } from "@/components/app/Vault";
+import { AppShell } from "@/components/app/AppShell";
 import { CopyLink } from "@/components/app/CopyLink";
 import { createForm } from "@/lib/actions/forms";
 import shell from "@/components/app/app.module.css";
@@ -48,8 +49,7 @@ export default async function DashboardPage() {
   }));
 
   return (
-    <div className={shell.shell}>
-      <Vault forms={vaultForms} />
+    <AppShell vault={<Vault forms={vaultForms} />}>
       <main className={shell.main}>
         <div className={shell.toprow}>
           <span className={shell.crumb}>Your forms</span>
@@ -103,7 +103,7 @@ export default async function DashboardPage() {
           </div>
         </div>
       </main>
-    </div>
+    </AppShell>
   );
 }
 

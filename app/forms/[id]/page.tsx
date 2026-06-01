@@ -6,9 +6,9 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Vault, type VaultForm } from "@/components/app/Vault";
+import { AppShell } from "@/components/app/AppShell";
 import { FormEditor, type EditQuestion } from "@/components/app/FormEditor";
 import type { Question } from "@/lib/schema";
-import shell from "@/components/app/app.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -59,8 +59,7 @@ export default async function EditFormPage({
   const vaultForms = (list ?? []) as VaultForm[];
 
   return (
-    <div className={shell.shell}>
-      <Vault forms={vaultForms} activeId={id} />
+    <AppShell vault={<Vault forms={vaultForms} activeId={id} />}>
       <FormEditor
         formId={form.id}
         initialTitle={form.title}
@@ -69,6 +68,6 @@ export default async function EditFormPage({
         status={form.status}
         slug={form.public_slug}
       />
-    </div>
+    </AppShell>
   );
 }

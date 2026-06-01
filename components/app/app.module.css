@@ -2,10 +2,53 @@
    "Plain but tidy" per the design premise: the filling experience is the hero;
    this surface is calm and functional, echoing the same tokens. */
 
-.shell {
+.root {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   overflow: hidden;
+}
+.shell {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Drawer wrapper: invisible on desktop (the real .side is the column),
+   off-canvas container on mobile (see media query). */
+.drawer {
+  display: contents;
+}
+
+/* Mobile top bar — only shown < 760px (see media query below). */
+.mobileBar {
+  display: none;
+}
+.menuBtn {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 34px;
+  height: 34px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+}
+.menuBtn span {
+  display: block;
+  height: 1.5px;
+  background: var(--text);
+  border-radius: 2px;
+}
+.mobileMark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 /* ---- sidebar (vault) --------------------------------------------------- */
@@ -165,7 +208,37 @@
 }
 
 @media (max-width: 760px) {
+  .mobileBar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
+    flex-shrink: 0;
+  }
+  /* The vault becomes an off-canvas drawer. */
+  .drawer {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 40px rgba(31, 32, 36, 0.14);
+  }
+  .drawerOpen {
+    transform: translateX(0);
+  }
   .side {
-    display: none;
+    height: 100%;
+  }
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(31, 32, 36, 0.28);
   }
 }

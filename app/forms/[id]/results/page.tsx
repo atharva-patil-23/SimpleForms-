@@ -8,6 +8,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Vault, type VaultForm } from "@/components/app/Vault";
+import { AppShell } from "@/components/app/AppShell";
 import type { Question } from "@/lib/schema";
 import shell from "@/components/app/app.module.css";
 import styles from "./results.module.css";
@@ -62,8 +63,7 @@ export default async function ResultsPage({
   const vaultForms = (list ?? []) as VaultForm[];
 
   return (
-    <div className={shell.shell}>
-      <Vault forms={vaultForms} activeId={id} />
+    <AppShell vault={<Vault forms={vaultForms} activeId={id} />}>
       <main className={shell.main}>
         <div className={shell.toprow}>
           <span className={shell.crumb}>
@@ -106,7 +106,7 @@ export default async function ResultsPage({
           </div>
         </div>
       </main>
-    </div>
+    </AppShell>
   );
 }
 
