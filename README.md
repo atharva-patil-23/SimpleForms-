@@ -12,7 +12,11 @@ creator's dashboard within seconds.
 - **Next.js (App Router) + TypeScript** on the front and the edges
 - **Supabase** — Postgres, Auth (Google OAuth), and Row-Level Security
 - **Zod** as the single source of truth for question and answer shapes
-- No service-role key in the app: **RLS is the entire authorization story**
+- **RLS is the authorization story** for all form/response reads and writes.
+  The one exception is account deletion: a signed-in user deleting their own
+  account uses a server-only service-role client (`lib/supabase/admin.ts`,
+  `SUPABASE_SERVICE_ROLE_KEY`), since the auth admin API can't run under RLS.
+  Every other path is anon-key + RLS.
 
 ## How it fits together
 
@@ -132,7 +136,9 @@ npx supabase db reset
 ## Deploy
 
 - **App:** Vercel (auto-deploys on push). Set `NEXT_PUBLIC_SUPABASE_URL`,
-  `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_SITE_URL` in the project.
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`, and
+  `SUPABASE_SERVICE_ROLE_KEY` (server-only; powers account deletion) in the
+  project.
 - **Database:** a hosted Supabase project; push migrations with
   `npx supabase db push`. Configure the Google provider and add
   `https://your-domain/auth/callback` to the allowed redirect URLs.

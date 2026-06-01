@@ -10,7 +10,7 @@ import { NextResponse, type NextRequest } from "next/server";
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
 /** Path prefixes that require a signed-in creator. */
-const PROTECTED_PREFIXES = ["/dashboard", "/forms"];
+const PROTECTED_PREFIXES = ["/dashboard", "/forms", "/settings"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });

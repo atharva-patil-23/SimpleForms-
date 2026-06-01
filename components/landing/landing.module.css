@@ -1,0 +1,566 @@
+/*
+ * Landing page styles. Marketing surface for SimpleForms — but it lives inside
+ * the same design system as the app (DESIGN.md): white canvas, one cobalt
+ * accent, hairlines over shadows, subtle radii, lots of air. The page is wider
+ * and the type is larger than the app chrome, but every value here resolves to
+ * a token from globals.css.
+ */
+
+.page {
+  --maxw: 1080px;
+  --gutter: 24px;
+  color: var(--text);
+}
+
+/* ---- nav --------------------------------------------------------------- */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.navInner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 14px var(--gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.brandMark {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  background: var(--cobalt);
+  display: inline-block;
+}
+.navLinks {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.navSignIn {
+  color: var(--mut);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  transition: color 0.16s ease;
+}
+.navSignIn:hover {
+  color: var(--text);
+}
+.navCta {
+  font-size: 14px;
+  padding: 8px 16px;
+}
+
+/* ---- shared section scaffolding --------------------------------------- */
+
+.section {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 88px var(--gutter);
+}
+.sectionHead {
+  max-width: 640px;
+  margin: 0 auto 48px;
+  text-align: center;
+}
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cobalt);
+  margin-bottom: 14px;
+}
+.sectionTitle {
+  font-size: clamp(26px, 3.4vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+}
+.sectionSub {
+  margin-top: 12px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--mut);
+}
+
+/* ---- hero -------------------------------------------------------------- */
+
+.hero {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: clamp(56px, 8vw, 104px) var(--gutter) 72px;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  align-items: center;
+  gap: clamp(32px, 5vw, 72px);
+}
+.heroCopy {
+  min-width: 0;
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--mut);
+  margin-bottom: 22px;
+}
+.eyebrowDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cobalt);
+  box-shadow: 0 0 0 4px var(--cobalt-tint);
+}
+.h1 {
+  font-size: clamp(36px, 5.2vw, 54px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.04;
+}
+.heroSub {
+  margin-top: 20px;
+  font-size: clamp(16px, 1.6vw, 18px);
+  line-height: 1.55;
+  color: var(--mut);
+  max-width: 30em;
+}
+.ctaRow {
+  margin-top: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.heroCtaPrimary {
+  font-size: 15px;
+  padding: 12px 22px;
+}
+.heroCtaGhost {
+  font-size: 15px;
+  padding: 11px 18px;
+}
+.trust {
+  margin-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  font-size: 13px;
+  color: var(--mut);
+}
+.trustItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.trustDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--cobalt);
+}
+
+/* ---- hero preview (the product, shown as itself) ---------------------- */
+
+.preview {
+  position: relative;
+  min-width: 0;
+}
+.previewCard {
+  position: relative;
+  z-index: 1;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 26px 26px 28px;
+  box-shadow: 0 1px 0 var(--line);
+}
+.previewProgress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--fill);
+  overflow: hidden;
+  margin-bottom: 26px;
+}
+.previewProgressFill {
+  display: block;
+  height: 100%;
+  width: 40%;
+  border-radius: 999px;
+  background: var(--cobalt);
+  transform-origin: left;
+  animation: growBar 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+}
+@keyframes growBar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.previewQRow {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.previewQNum {
+  color: var(--cobalt);
+  font-weight: 700;
+  font-size: 18px;
+}
+.previewQ {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+.previewTag {
+  display: inline-block;
+  margin: 12px 0 18px 28px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--fill);
+  color: var(--mut);
+  font-size: 12px;
+}
+.previewChips {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-left: 28px;
+}
+.previewChip {
+  border: 1px solid var(--line);
+  background: var(--fill);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 14px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.previewChipActive {
+  border-color: var(--cobalt);
+  background: var(--cobalt-tint);
+}
+.previewChipKey {
+  font-size: 11px;
+  color: var(--mut);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 1px 6px;
+  margin-left: auto;
+}
+.previewChipActive .previewChipKey {
+  color: var(--cobalt);
+  border-color: color-mix(in srgb, var(--cobalt) 35%, var(--line));
+}
+.previewFooter {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.previewHint {
+  font-size: 12px;
+  color: var(--faint);
+}
+.previewContinue {
+  font-size: 14px;
+  padding: 9px 18px;
+}
+/* a faint floating duplicate behind the card for depth, still hairline-light */
+.previewGhost {
+  position: absolute;
+  inset: 18px -10px -16px 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--side);
+  z-index: 0;
+}
+
+/* ---- features (bento) -------------------------------------------------- */
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.featureCard {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 26px;
+  background: var(--bg);
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+.featureCard:hover {
+  border-color: var(--faint);
+  transform: translateY(-3px);
+}
+.featureWide {
+  grid-column: span 2;
+}
+.featureIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--cobalt-tint);
+  color: var(--cobalt);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+.featureTitle {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.featureText {
+  margin-top: 8px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--mut);
+}
+.featureCode {
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--fill);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  line-height: 1.7;
+}
+.featureCodeAccent {
+  color: var(--cobalt);
+  font-weight: 600;
+}
+
+/* ---- question types strip --------------------------------------------- */
+
+.typesStrip {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 var(--gutter) 24px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.typePill {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--mut);
+  background: var(--fill);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+
+/* ---- how it works ------------------------------------------------------ */
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  counter-reset: step;
+}
+.step {
+  position: relative;
+  padding: 26px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.stepNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--cobalt);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+.stepTitle {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.stepText {
+  margin-top: 8px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--mut);
+}
+
+/* ---- final CTA (the one intentional accent block) --------------------- */
+
+.ctaWrap {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 24px var(--gutter) 96px;
+}
+.ctaCard {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--cobalt);
+  color: #fff;
+  padding: clamp(40px, 6vw, 72px) var(--gutter);
+  text-align: center;
+}
+/* a quiet sheen so the accent block has a little life, no second hue */
+.ctaCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    120% 100% at 50% -20%,
+    rgba(255, 255, 255, 0.18),
+    transparent 60%
+  );
+  pointer-events: none;
+}
+.ctaTitle {
+  position: relative;
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.ctaSub {
+  position: relative;
+  margin: 14px auto 0;
+  max-width: 36em;
+  font-size: 16px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.82);
+}
+.ctaBtn {
+  position: relative;
+  margin-top: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  color: var(--cobalt-deep);
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 13px 26px;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+}
+.ctaBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+/* ---- footer ------------------------------------------------------------ */
+
+.footer {
+  border-top: 1px solid var(--line);
+}
+.footerInner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 36px var(--gutter);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.footerBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 15px;
+}
+.footerMeta {
+  font-size: 13px;
+  color: var(--mut);
+}
+.footerLinks {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  font-size: 14px;
+}
+.footerLink {
+  color: var(--mut);
+  transition: color 0.16s ease;
+}
+.footerLink:hover {
+  color: var(--text);
+}
+
+/* ---- responsive -------------------------------------------------------- */
+
+@media (max-width: 860px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding-top: clamp(40px, 9vw, 64px);
+    gap: 44px;
+  }
+  .heroSub {
+    max-width: none;
+  }
+  .features,
+  .steps {
+    grid-template-columns: 1fr;
+  }
+  .featureWide {
+    grid-column: span 1;
+  }
+  .section {
+    padding: 64px var(--gutter);
+  }
+  .previewGhost {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .navSignIn {
+    display: none;
+  }
+}

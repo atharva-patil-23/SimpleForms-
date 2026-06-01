@@ -120,3 +120,63 @@ textarea:focus-visible {
   border-color: var(--faint);
   color: var(--text);
 }
+
+/* ---- motion ------------------------------------------------------------ */
+
+/* Scroll-reveal utility, used by the <Reveal> client wrapper. Elements start
+   slightly lower and transparent, then settle once they enter the viewport.
+   The easing is a gentle "ease-out-expo" so things arrive, never bounce. */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.reveal[data-inview="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+/* Give the primary/ghost buttons a tactile lift on hover, app-wide. Subtle:
+   1px rise, no shadow pile-up — hairlines-over-shadows still holds. */
+.btn-primary,
+.btn-ghost {
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+.btn-primary:hover,
+.btn-ghost:hover {
+  transform: translateY(-1px);
+}
+.btn-primary:active,
+.btn-ghost:active {
+  transform: translateY(0);
+}
+
+/* Honor the OS "reduce motion" setting: no entrances, no lifts, nothing that
+   moves. Content is simply visible. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .btn-primary,
+  .btn-ghost {
+    transition:
+      background 0.16s ease,
+      border-color 0.16s ease,
+      color 0.16s ease;
+  }
+  .btn-primary:hover,
+  .btn-ghost:hover,
+  .btn-primary:active,
+  .btn-ghost:active {
+    transform: none;
+  }
+}

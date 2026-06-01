@@ -5,6 +5,7 @@
  */
 import Link from "next/link";
 import { createForm } from "@/lib/actions/forms";
+import { ProfileMenu, type ProfileUser } from "./ProfileMenu";
 import styles from "./app.module.css";
 
 export interface VaultForm {
@@ -16,9 +17,11 @@ export interface VaultForm {
 export function Vault({
   forms,
   activeId,
+  user,
 }: {
   forms: VaultForm[];
   activeId?: string;
+  user?: ProfileUser;
 }) {
   const published = forms.filter((f) => f.status === "published");
   const drafts = forms.filter((f) => f.status === "draft");
@@ -52,17 +55,25 @@ export function Vault({
         />
       </nav>
 
-      <div className={styles.status}>
-        <span className={styles.statusLeft}>
-          <span className={styles.statusDot} />
-          {forms.length} {forms.length === 1 ? "form" : "forms"}
-        </span>
-        <form action="/auth/signout" method="post" style={{ display: "contents" }}>
-          <button type="submit" className={styles.signout}>
-            Sign out
-          </button>
-        </form>
-      </div>
+      {user ? (
+        <ProfileMenu user={user} />
+      ) : (
+        <div className={styles.status}>
+          <span className={styles.statusLeft}>
+            <span className={styles.statusDot} />
+            {forms.length} {forms.length === 1 ? "form" : "forms"}
+          </span>
+          <form
+            action="/auth/signout"
+            method="post"
+            style={{ display: "contents" }}
+          >
+            <button type="submit" className={styles.signout}>
+              Sign out
+            </button>
+          </form>
+        </div>
+      )}
     </aside>
   );
 }

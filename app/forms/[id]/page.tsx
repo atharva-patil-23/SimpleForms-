@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Vault, type VaultForm } from "@/components/app/Vault";
 import { AppShell } from "@/components/app/AppShell";
 import { FormEditor, type EditQuestion } from "@/components/app/FormEditor";
+import { toProfileUser } from "@/lib/user";
 import type { Question } from "@/lib/schema";
 
 export const dynamic = "force-dynamic";
@@ -59,7 +60,7 @@ export default async function EditFormPage({
   const vaultForms = (list ?? []) as VaultForm[];
 
   return (
-    <AppShell vault={<Vault forms={vaultForms} activeId={id} />}>
+    <AppShell vault={<Vault forms={vaultForms} activeId={id} user={toProfileUser(user)} />}>
       <FormEditor
         formId={form.id}
         initialTitle={form.title}

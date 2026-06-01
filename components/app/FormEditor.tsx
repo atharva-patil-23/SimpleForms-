@@ -21,6 +21,7 @@ import {
   deleteForm,
 } from "@/lib/actions/forms";
 import { generateQuestionId } from "@/lib/qid";
+import { ConfirmDialog } from "./ConfirmDialog";
 import shell from "./app.module.css";
 import styles from "@/app/forms/[id]/editor.module.css";
 
@@ -76,6 +77,7 @@ export function FormEditor({
   const [error, setError] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   // Empty on the server and the first client render (so the share link
   // hydrates without a mismatch), upgraded to the absolute origin after mount.
   const [origin, setOrigin] = useState("");
@@ -188,9 +190,9 @@ export function FormEditor({
   }
 
   async function doDelete() {
-    if (!window.confirm("Delete this form and all its responses? This can't be undone."))
-      return;
     setBusy(true);
+    // deleteForm redirects to /dashboard on success, so control won't return
+    // here in the happy path; the dialog stays up (busy) until navigation.
     await deleteForm(formId);
   }
 
@@ -285,9 +287,7 @@ export function FormEditor({
 
           {status === "published" && shareUrl ? (
             <div className={styles.shareBox}>
-              <div className={styles.saveNote} style={{ marginBottom: 6 }}>
-                Share link
-              </div>
+              <div className={styles.shareLabel}>Share link</div>
               <a className={styles.shareUrl} href={shareUrl} target="_blank" rel="noreferrer">
                 {shareUrl}
               </a>
@@ -298,7 +298,7 @@ export function FormEditor({
             <button
               className={styles.qDelete}
               style={{ fontSize: 13 }}
-              onClick={doDelete}
+              onClick={() => setConfirmDelete(true)}
               disabled={busy}
             >
               Delete form
@@ -313,6 +313,17 @@ export function FormEditor({
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        danger
+        title="Delete this form?"
+        message="This permanently deletes the form and all of its responses. This can't be undone."
+        confirmLabel="Delete form"
+        busy={busy}
+        onConfirm={doDelete}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </main>
   );
 }

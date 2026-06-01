@@ -10,6 +10,7 @@ import { Vault, type VaultForm } from "@/components/app/Vault";
 import { AppShell } from "@/components/app/AppShell";
 import { CopyLink } from "@/components/app/CopyLink";
 import { createForm } from "@/lib/actions/forms";
+import { toProfileUser } from "@/lib/user";
 import shell from "@/components/app/app.module.css";
 import styles from "./dashboard.module.css";
 
@@ -48,8 +49,14 @@ export default async function DashboardPage() {
     status: f.status,
   }));
 
+  const publishedCount = forms.filter((f) => f.status === "published").length;
+  const totalResponses = forms.reduce(
+    (sum, f) => sum + (f.responses?.[0]?.count ?? 0),
+    0,
+  );
+
   return (
-    <AppShell vault={<Vault forms={vaultForms} />}>
+    <AppShell vault={<Vault forms={vaultForms} user={toProfileUser(user)} />}>
       <main className={shell.main}>
         <div className={shell.toprow}>
           <span className={shell.crumb}>Your forms</span>
@@ -65,40 +72,67 @@ export default async function DashboardPage() {
             {forms.length === 0 ? (
               <EmptyState />
             ) : (
-              <ul className={styles.list}>
-                {forms.map((f) => (
-                  <li key={f.id} className={styles.row}>
-                    <div className={styles.rowMain}>
-                      <Link href={`/forms/${f.id}`} className={styles.rowTitle}>
-                        {f.title || "Untitled form"}
-                      </Link>
-                      <div className={styles.rowMeta}>
-                        <StatusPill status={f.status} />
-                        <span>
-                          {f.responses?.[0]?.count ?? 0}{" "}
-                          {(f.responses?.[0]?.count ?? 0) === 1
-                            ? "response"
-                            : "responses"}
-                        </span>
+              <>
+                <div className={styles.header}>
+                  <div>
+                    <h1 className={styles.headTitle}>Your forms</h1>
+                    <div className={styles.headStats}>
+                      <span>
+                        {forms.length} {forms.length === 1 ? "form" : "forms"}
+                      </span>
+                      <span className={styles.statDot} />
+                      <span>{publishedCount} published</span>
+                      <span className={styles.statDot} />
+                      <span>
+                        {totalResponses}{" "}
+                        {totalResponses === 1 ? "response" : "responses"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <ul className={styles.list}>
+                  {forms.map((f, i) => (
+                    <li
+                      key={f.id}
+                      className={styles.row}
+                      style={{ animationDelay: `${Math.min(i * 45, 360)}ms` }}
+                    >
+                      <div className={styles.rowMain}>
+                        <Link
+                          href={`/forms/${f.id}`}
+                          className={styles.rowTitle}
+                        >
+                          {f.title || "Untitled form"}
+                        </Link>
+                        <div className={styles.rowMeta}>
+                          <StatusPill status={f.status} />
+                          <span>
+                            {f.responses?.[0]?.count ?? 0}{" "}
+                            {(f.responses?.[0]?.count ?? 0) === 1
+                              ? "response"
+                              : "responses"}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    <div className={styles.rowActions}>
-                      {f.status === "published" && f.public_slug ? (
-                        <CopyLink slug={f.public_slug} />
-                      ) : null}
-                      <Link
-                        href={`/forms/${f.id}/results`}
-                        className="btn-ghost"
-                      >
-                        Results
-                      </Link>
-                      <Link href={`/forms/${f.id}`} className="btn-ghost">
-                        Edit
-                      </Link>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                      <div className={styles.rowActions}>
+                        {f.status === "published" && f.public_slug ? (
+                          <CopyLink slug={f.public_slug} />
+                        ) : null}
+                        <Link
+                          href={`/forms/${f.id}/results`}
+                          className="btn-ghost"
+                        >
+                          Results
+                        </Link>
+                        <Link href={`/forms/${f.id}`} className="btn-ghost">
+                          Edit
+                        </Link>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
           </div>
         </div>
@@ -114,6 +148,7 @@ function StatusPill({ status }: { status: "draft" | "published" }) {
         status === "published" ? styles.pillPub : styles.pillDraft
       }`}
     >
+      <span className={styles.pillDot} />
       {status}
     </span>
   );
@@ -122,11 +157,29 @@ function StatusPill({ status }: { status: "draft" | "published" }) {
 function EmptyState() {
   return (
     <div className={styles.empty}>
+      <span className={styles.emptyMark}>
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M5 3h9l5 5v13H5z" />
+          <path d="M14 3v5h5" />
+          <path d="M9 13h6M9 17h6" />
+        </svg>
+      </span>
       <div className={styles.emptyTitle}>No forms yet.</div>
       <p className={styles.emptySub}>
-        Create your first form — it takes about two minutes.
+        Create your first form — write the questions like a document, then share
+        one link. It takes about two minutes.
       </p>
-      <form action={createForm} style={{ marginTop: 18 }}>
+      <form action={createForm} style={{ marginTop: 20 }}>
         <button type="submit" className="btn-primary">
           + New form
         </button>

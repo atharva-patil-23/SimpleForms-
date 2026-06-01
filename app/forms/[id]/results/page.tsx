@@ -1,8 +1,10 @@
 /**
- * Results view (ENGINEERING_PLAN T11, decision 11). Renders each response
- * against ITS OWN schema_snapshot, so edits to the live form never change how
- * past responses display. Owner-scoped by RLS. Crude/smoke-tested per decision
- * 14; load-all is fine at side-project scale (pagination → TODOS.md).
+ * Results view (ENGINEERING_PLAN T11, decision 11). A spreadsheet-style table:
+ * one row per response, one column per question. Columns come from the live
+ * form schema plus any question still referenced by an older response snapshot
+ * (see lib/responses-table), so editing a form never drops historical answers.
+ * Owner-scoped by RLS. Load-all is fine at side-project scale (pagination →
+ * TODOS.md). CSV export lives at ./export (owner-scoped route handler).
  */
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -10,17 +12,17 @@ import { createClient } from "@/lib/supabase/server";
 import { Vault, type VaultForm } from "@/components/app/Vault";
 import { AppShell } from "@/components/app/AppShell";
 import type { Question } from "@/lib/schema";
+import {
+  buildColumns,
+  formatCell,
+  formatTimestamp,
+  type ResponseRecord,
+} from "@/lib/responses-table";
+import { toProfileUser } from "@/lib/user";
 import shell from "@/components/app/app.module.css";
 import styles from "./results.module.css";
 
 export const dynamic = "force-dynamic";
-
-interface ResponseRow {
-  id: string;
-  answers: Record<string, unknown>;
-  schema_snapshot: Question[];
-  submitted_at: string;
-}
 
 export default async function ResultsPage({
   params,
@@ -34,13 +36,10 @@ export default async function ResultsPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Owner-scoped explicitly. The responses query below is already owner-scoped
-  // by RLS (owner reads responses to own forms), but the form-title load and
-  // the vault list need the explicit owner filter (published-read policy).
   const [{ data: form }, { data: list }] = await Promise.all([
     supabase
       .from("forms")
-      .select("id, title")
+      .select("id, title, schema")
       .eq("id", id)
       .eq("owner_id", user.id)
       .maybeSingle(),
@@ -59,29 +58,44 @@ export default async function ResultsPage({
     .eq("form_id", id)
     .order("submitted_at", { ascending: false });
 
-  const responses = (responseData ?? []) as ResponseRow[];
+  const responses = (responseData ?? []) as ResponseRecord[];
   const vaultForms = (list ?? []) as VaultForm[];
+  const liveSchema = ((form.schema as Question[]) ?? []);
+  const columns = buildColumns(liveSchema, responses);
 
   return (
-    <AppShell vault={<Vault forms={vaultForms} activeId={id} />}>
+    <AppShell vault={<Vault forms={vaultForms} activeId={id} user={toProfileUser(user)} />}>
       <main className={shell.main}>
         <div className={shell.toprow}>
           <span className={shell.crumb}>
             {form.title || "Untitled form"} · results
           </span>
-          <Link href={`/forms/${id}`} className="btn-ghost">
-            Edit form
-          </Link>
+          <div className={shell.topActions}>
+            {responses.length > 0 ? (
+              <a
+                className="btn-ghost"
+                href={`/forms/${id}/results/export`}
+                download
+              >
+                ↓ Export CSV
+              </a>
+            ) : null}
+            <Link href={`/forms/${id}`} className="btn-ghost">
+              Edit form
+            </Link>
+          </div>
         </div>
 
         <div className={shell.doc}>
-          <div className={shell.page}>
+          <div className={shell.wide}>
             <div className={styles.head}>
               <div className={styles.title}>Responses</div>
-              <div className={styles.sub}>
-                {responses.length}{" "}
-                {responses.length === 1 ? "response" : "responses"}
-              </div>
+              {responses.length > 0 ? (
+                <span className={styles.countChip}>
+                  {responses.length}{" "}
+                  {responses.length === 1 ? "response" : "responses"}
+                </span>
+              ) : null}
             </div>
 
             {responses.length === 0 ? (
@@ -93,14 +107,42 @@ export default async function ResultsPage({
                 </p>
               </div>
             ) : (
-              <div className={styles.cards}>
-                {responses.map((r, i) => (
-                  <ResponseCard
-                    key={r.id}
-                    response={r}
-                    number={responses.length - i}
-                  />
-                ))}
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th className={styles.thNum}>#</th>
+                      <th className={styles.thTime}>Submitted</th>
+                      {columns.map((c) => (
+                        <th key={c.id} className={styles.th}>
+                          {c.title}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {responses.map((r, i) => (
+                      <tr key={r.id} className={styles.tr}>
+                        <td className={styles.tdNum}>{responses.length - i}</td>
+                        <td className={styles.tdTime}>
+                          {formatTimestamp(r.submitted_at)}
+                        </td>
+                        {columns.map((c) => {
+                          const value = formatCell(r, c);
+                          return (
+                            <td
+                              key={c.id}
+                              className={`${styles.td} ${value === "" ? styles.tdEmpty : ""}`}
+                              title={value || undefined}
+                            >
+                              {value === "" ? "—" : value}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
@@ -108,65 +150,4 @@ export default async function ResultsPage({
       </main>
     </AppShell>
   );
-}
-
-function ResponseCard({
-  response,
-  number,
-}: {
-  response: ResponseRow;
-  number: number;
-}) {
-  const questions = response.schema_snapshot ?? [];
-  return (
-    <div className={styles.card}>
-      <div className={styles.cardHead}>
-        <span>#{number}</span>
-        <span>{formatTimestamp(response.submitted_at)}</span>
-      </div>
-      {questions.map((q) => {
-        const formatted = formatAnswer(q, response.answers[q.id]);
-        return (
-          <div className={styles.qa} key={q.id}>
-            <div className={styles.qaQ}>{q.title}</div>
-            <div className={`${styles.qaA} ${formatted === null ? styles.qaEmpty : ""}`}>
-              {formatted ?? "— no answer —"}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/** Calm timestamp: "Jun 1, 2026 · 11:30 AM" (no seconds). */
-function formatTimestamp(iso: string): string {
-  const d = new Date(iso);
-  const date = d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-  const time = d.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-  return `${date} · ${time}`;
-}
-
-/** Render an answer value for display, by question type. null → no answer. */
-function formatAnswer(q: Question, value: unknown): string | null {
-  if (value === undefined || value === null || value === "") return null;
-  switch (q.type) {
-    case "yes_no":
-      return value ? "Yes" : "No";
-    case "multi_select":
-      return Array.isArray(value) && value.length > 0
-        ? value.join(", ")
-        : null;
-    case "number":
-      return String(value);
-    default:
-      return String(value);
-  }
 }

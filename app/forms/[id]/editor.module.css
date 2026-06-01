@@ -41,8 +41,14 @@
 }
 
 .q {
-  padding: 16px 0;
+  padding: 16px 14px;
+  margin: 0 -14px;
+  border-radius: 10px;
   border-bottom: 1px solid var(--line);
+  transition: background 0.16s ease;
+}
+.q:focus-within {
+  background: var(--fill);
 }
 .qhead {
   display: flex;
@@ -76,6 +82,13 @@
   border-radius: 5px;
   padding: 3px 8px;
   cursor: pointer;
+  transition:
+    border-color 0.14s ease,
+    color 0.14s ease;
+}
+.typeTag:hover {
+  border-color: var(--cobalt);
+  color: var(--cobalt-deep);
 }
 .qDelete {
   background: none;
@@ -219,8 +232,12 @@
 }
 
 .saveNote {
-  font-size: 13px;
-  color: var(--mut);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cobalt-deep);
+  background: var(--cobalt-tint);
+  border-radius: 999px;
+  padding: 4px 11px;
 }
 .errorNote {
   font-size: 13px;
@@ -228,15 +245,31 @@
 }
 .shareBox {
   margin-left: 26px;
-  margin-top: 14px;
+  margin-top: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  background: var(--fill);
+}
+.shareLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mut);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
 }
 .shareUrl {
   font-family: var(--font-mono);
   font-size: 13px;
-  background: var(--fill);
+  background: var(--bg);
   border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 7px 10px;
+  border-radius: 8px;
+  padding: 9px 12px;
   color: var(--cobalt-deep);
   display: inline-block;
+  transition: border-color 0.14s ease;
+}
+.shareUrl:hover {
+  border-color: var(--cobalt);
 }

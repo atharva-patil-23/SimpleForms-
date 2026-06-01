@@ -1,17 +1,72 @@
+/* Dashboard — the creator's forms, as a calm card list. Same tokens as the
+   rest of the app; hairlines do the structural work, with the faintest lift on
+   hover so a row feels clickable without shouting. */
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 26px;
+}
+.headTitle {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.headStats {
+  margin-top: 7px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--mut);
+}
+.statDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--faint);
+}
+
 .list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 10px;
 }
 .row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
   flex-wrap: wrap;
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+  animation: rowRise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.row:hover {
+  border-color: var(--faint);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(31, 32, 36, 0.06);
+}
+@keyframes rowRise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 .rowMain {
   min-width: 0;
@@ -21,6 +76,7 @@
   font-weight: 600;
   color: var(--text);
   letter-spacing: -0.01em;
+  transition: color 0.14s ease;
 }
 .rowTitle:hover {
   color: var(--cobalt);
@@ -29,7 +85,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 6px;
+  margin-top: 7px;
   font-size: 13px;
   color: var(--mut);
 }
@@ -39,11 +95,20 @@
   gap: 8px;
 }
 .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-family: var(--font-mono);
   font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
   text-transform: lowercase;
+}
+.pillDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
 }
 .pillPub {
   background: var(--cobalt-tint);
@@ -56,8 +121,22 @@
 }
 
 .empty {
-  padding: 60px 0;
+  padding: 72px 24px;
   text-align: center;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  background: var(--fill);
+}
+.emptyMark {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--cobalt-tint);
+  color: var(--cobalt);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
 }
 .emptyTitle {
   font-size: 22px;
@@ -68,4 +147,16 @@
 .emptySub {
   color: var(--mut);
   font-size: 15px;
+  line-height: 1.5;
+  max-width: 34ch;
+  margin: 0 auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row {
+    animation: none;
+  }
+  .row:hover {
+    transform: none;
+  }
 }

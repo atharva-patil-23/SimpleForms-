@@ -1,10 +1,21 @@
 .head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 24px;
 }
 .title {
   font-size: 28px;
   font-weight: 700;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
+}
+.countChip {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cobalt-deep);
+  background: var(--cobalt-tint);
+  border-radius: 999px;
+  padding: 4px 12px;
 }
 .sub {
   color: var(--mut);
@@ -12,49 +23,90 @@
   margin-top: 6px;
 }
 
-.cards {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.card {
+/* ---- submissions table ------------------------------------------------- */
+
+.tableWrap {
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 18px 20px;
+  overflow: auto;
+  background: var(--bg);
+  max-height: calc(100vh - 230px);
 }
-.cardHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 12px;
+.table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  font-size: 14px;
+}
+.table th,
+.table td {
+  text-align: left;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* sticky header row */
+.table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--side);
+  font-weight: 600;
   color: var(--mut);
-  margin-bottom: 12px;
-  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
 }
-.qa {
-  padding: 8px 0;
-  border-top: 1px solid var(--line);
+.th {
+  min-width: 140px;
 }
-.qa:first-of-type {
-  border-top: 0;
-}
-.qaQ {
-  font-size: 13px;
-  color: var(--mut);
-  margin-bottom: 3px;
-}
-.qaA {
-  font-size: 15px;
-  color: var(--text);
-  white-space: pre-wrap;
-}
-.qaEmpty {
+.thNum,
+.tdNum {
+  width: 52px;
+  min-width: 52px;
+  text-align: right;
   color: var(--faint);
-  font-style: italic;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  /* keep the row-number column pinned while scrolling sideways */
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--bg);
+}
+.table thead th.thNum {
+  z-index: 3;
+  background: var(--side);
+}
+.thTime,
+.tdTime {
+  min-width: 168px;
+  color: var(--mut);
+  font-size: 13px;
+}
+.td {
+  color: var(--text);
+}
+.tdEmpty {
+  color: var(--faint);
+}
+.tr:last-child td {
+  border-bottom: 0;
+}
+.tr:hover td {
+  background: var(--fill);
+}
+.tr:hover .tdNum {
+  background: var(--fill);
 }
 
 .empty {
-  padding: 60px 0;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  background: var(--fill);
+  padding: 64px 24px;
   text-align: center;
 }
 .emptyTitle {

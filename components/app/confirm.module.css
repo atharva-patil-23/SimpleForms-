@@ -1,0 +1,98 @@
+/* Confirmation modal. Same tokens as the app: white card, hairline border, one
+   intentional shadow to lift it off the dimmed canvas. Danger confirm is the
+   one place red appears, matching the Settings delete zone. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(31, 32, 36, 0.36);
+  animation: overlayIn 0.16s ease both;
+}
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.dialog {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(31, 32, 36, 0.24);
+  padding: 26px 24px 20px;
+  animation: dialogIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes dialogIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.title {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin-bottom: 8px;
+}
+.message {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--mut);
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.confirmDanger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #c8372d;
+  color: #fff;
+  border: 0;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition:
+    background 0.14s ease,
+    transform 0.14s ease,
+    opacity 0.14s ease;
+}
+.confirmDanger:hover:not(:disabled) {
+  background: #ab2c23;
+  transform: translateY(-1px);
+}
+.confirmDanger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .dialog {
+    animation: none;
+  }
+  .confirmDanger:hover:not(:disabled) {
+    transform: none;
+  }
+}

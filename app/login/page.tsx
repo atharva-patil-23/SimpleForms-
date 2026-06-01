@@ -10,6 +10,7 @@ import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { safeNext } from "@/lib/safe-redirect";
+import styles from "./login.module.css";
 
 function LoginInner() {
   const [loading, setLoading] = useState(false);
@@ -36,65 +37,31 @@ function LoginInner() {
   }
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "0 24px",
-      }}
-    >
-      <div style={{ width: "100%", maxWidth: 360, textAlign: "center" }}>
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 9,
-            fontSize: 17,
-            fontWeight: 600,
-            letterSpacing: "-0.01em",
-            marginBottom: 26,
-          }}
-        >
-          <span
-            style={{
-              width: 14,
-              height: 14,
-              borderRadius: 4,
-              background: "var(--cobalt)",
-            }}
-          />
+    <main className={styles.wrap}>
+      <div className={styles.card}>
+        <div className={styles.brand}>
+          <span className={styles.brandMark} />
           SimpleForms
         </div>
 
-        <h1
-          style={{
-            fontSize: 26,
-            fontWeight: 700,
-            letterSpacing: "-0.015em",
-            marginBottom: 8,
-          }}
-        >
-          Sign in
-        </h1>
-        <p style={{ color: "var(--mut)", fontSize: 15, marginBottom: 28 }}>
-          To create forms and see your responses.
-        </p>
+        <h1 className={styles.title}>Sign in</h1>
+        <p className={styles.sub}>To create forms and see your responses.</p>
 
         <button
           onClick={signIn}
           disabled={loading}
-          className="btn-primary"
-          style={{ width: "100%", justifyContent: "center", padding: "12px 20px", gap: 10 }}
+          className={`btn-primary ${styles.btn}`}
         >
           {loading ? null : <GoogleG />}
           {loading ? "Redirecting…" : "Continue with Google"}
         </button>
 
-        {error ? (
-          <p style={{ color: "#c8372d", fontSize: 14, marginTop: 14 }}>{error}</p>
-        ) : null}
+        {error ? <p className={styles.error}>{error}</p> : null}
+
+        <p className={styles.fine}>
+          Creators sign in with Google. Anyone you share a form with can fill it
+          out without an account.
+        </p>
       </div>
     </main>
   );
@@ -103,16 +70,7 @@ function LoginInner() {
 /** Official 4-color Google "G", in a white chip so it reads on the cobalt button. */
 function GoogleG() {
   return (
-    <span
-      aria-hidden
-      style={{
-        display: "inline-flex",
-        background: "#fff",
-        borderRadius: 4,
-        padding: 3,
-        lineHeight: 0,
-      }}
-    >
+    <span aria-hidden className={styles.googleG}>
       <svg width="16" height="16" viewBox="0 0 18 18">
         <path
           fill="#4285F4"
