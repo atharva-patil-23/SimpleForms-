@@ -61,14 +61,41 @@ npm run dev            # http://localhost:3000
 
 ### Google sign-in (local)
 
-Auth uses Google OAuth. To exercise sign-in locally, create OAuth credentials in
-the Google Cloud console and export them before `supabase start` (the CLI reads
-them via env substitution in `supabase/config.toml`):
+Auth uses Google OAuth. To exercise sign-in locally:
 
-```bash
-export SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID=...
-export SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET=...
-```
+1. In the **Google Cloud Console** → APIs & Services → Credentials:
+   - Configure the OAuth consent screen (External; add yourself as a test user).
+   - Create an **OAuth client ID** → *Web application*.
+   - Add this **Authorized redirect URI** (this is Supabase's local callback,
+     not the app's):
+
+     ```
+     http://127.0.0.1:54321/auth/v1/callback
+     ```
+
+2. Copy the credentials into a gitignored env file:
+
+   ```bash
+   cp .env.google.local.example .env.google.local
+   # paste your client ID + secret
+   ```
+
+3. Start the stack with the launcher that loads them (instead of plain
+   `supabase start`):
+
+   ```bash
+   npm run db:start
+   ```
+
+`supabase/config.toml` already enables the Google provider via env
+substitution, allows `http://localhost:3000/auth/callback` as a redirect, and
+sets `skip_nonce_check = true` (required for local Google sign-in). The app's
+flow: `/login` → Google → Supabase `/auth/v1/callback` → app `/auth/callback`
+(code exchange) → `/dashboard`.
+
+For **production**, add `https://<your-domain>/auth/callback` to the Google
+client's redirect URIs and to the Supabase project's auth redirect allow-list,
+and set the same two env vars in the hosted project's auth settings.
 
 ## Tests
 

@@ -42,3 +42,6 @@ yarn-error.log*
 .vercel
 *.tsbuildinfo
 .gstack/
+
+# local Google OAuth creds (never commit)
+.env.google.local
