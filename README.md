@@ -73,8 +73,9 @@ export SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET=...
 ## Tests
 
 ```bash
-npm test               # all Vitest suites
-npm run test:rls       # the 8 RLS assertions (needs `supabase start`)
+npm test               # all Vitest suites (unit + integration)
+npm run test:rls       # the RLS assertions (needs `supabase start`)
+npm run test:e2e       # Playwright: the full loop + isolation (needs the stack)
 ```
 
 - **`tests/schema.test.ts`** — every question type, plus the runtime answer
@@ -85,8 +86,12 @@ npm run test:rls       # the 8 RLS assertions (needs `supabase start`)
 - **`tests/submit.integration.test.ts`** — the submit trust boundary
   (valid / invalid / closed / cap / rate limit), exercised against the real
   anon client so RLS is genuinely in the loop.
+- **`e2e/`** (Playwright) — the full create → publish → fill → submit → results
+  loop through a real browser, plus auth gating and cross-user isolation. The
+  creator half runs authenticated; the respondent half runs in a fresh
+  anonymous context, like a real share link.
 
-The RLS and submit suites require `npx supabase start` to be running.
+The integration and e2e suites require `npx supabase start` to be running.
 
 ## Database & migrations
 
