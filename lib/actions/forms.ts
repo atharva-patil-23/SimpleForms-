@@ -39,6 +39,8 @@ export interface SaveFormInput {
   title: string;
   description: string | null;
   schema: unknown;
+  successMessage?: string | null;
+  redirectUrl?: string | null;
 }
 
 export async function saveForm(
@@ -53,15 +55,39 @@ export async function saveForm(
     return { ok: false, error: "Some questions aren't valid yet." };
   }
 
-  const { error } = await supabase
+  // Redirect URL, if set, must be an absolute http(s) URL — never javascript:
+  // or other schemes (the respondent's browser will navigate to it).
+  const redirect = input.redirectUrl?.trim() || null;
+  if (redirect && !/^https?:\/\/[^\s]+$/i.test(redirect)) {
+    return { ok: false, error: "Redirect URL must start with http:// or https://" };
+  }
+
+  const base = {
+    title: input.title.trim() || "Untitled form",
+    description: input.description?.trim() || null,
+    schema: questions,
+  };
+  const withPostSubmit = {
+    ...base,
+    success_message: input.successMessage?.trim() || null,
+    redirect_url: redirect,
+  };
+
+  // Try to persist the post-submit settings; if the migration adding those
+  // columns hasn't run yet, fall back to saving the core fields so editing
+  // never silently breaks.
+  let { error } = await supabase
     .from("forms")
-    .update({
-      title: input.title.trim() || "Untitled form",
-      description: input.description?.trim() || null,
-      schema: questions,
-    })
+    .update(withPostSubmit)
     .eq("id", input.id)
     .eq("owner_id", user.id);
+  if (error) {
+    ({ error } = await supabase
+      .from("forms")
+      .update(base)
+      .eq("id", input.id)
+      .eq("owner_id", user.id));
+  }
 
   if (error) return { ok: false, error: "Couldn't save. Please try again." };
 

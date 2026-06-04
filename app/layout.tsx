@@ -12,8 +12,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+    // suppressHydrationWarning: the public fill page sets data-theme on <html>
+    // via an inline script before hydration (to avoid a dark-embed white flash),
+    // which would otherwise trip React's attribute-mismatch warning.
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Inter from Google Fonts, kept simple — no build-time font pipeline. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

@@ -7,7 +7,7 @@
  * On network failure the answers are preserved in the reducer so a retry loses
  * nothing.
  */
-import { useReducer, useCallback } from "react";
+import { useReducer, useCallback, useEffect, useRef, useState } from "react";
 import { buildAnswerValidator, type Question } from "@/lib/schema";
 import { QuestionField } from "./QuestionField";
 import styles from "./fill.module.css";
@@ -29,7 +29,10 @@ type Action =
   | { type: "SUBMIT_START" }
   | { type: "SUBMIT_DONE" }
   | { type: "SUBMIT_CLOSED" }
-  | { type: "SUBMIT_FAIL"; message: string };
+  | { type: "SUBMIT_FAIL"; message: string }
+  | { type: "RESET" };
+
+const INITIAL: State = { index: 0, answers: {}, error: null, phase: "filling" };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -57,30 +60,117 @@ function reducer(state: State, action: Action): State {
       return { ...state, phase: "closed" };
     case "SUBMIT_FAIL":
       return { ...state, phase: "filling", error: action.message };
+    case "RESET":
+      return INITIAL;
     default:
       return state;
   }
 }
 
+const THEMES = new Set(["light", "dark", "auto"]);
+
 export function FillExperience({
   slug,
   title,
   questions,
+  embed = false,
+  theme = "light",
+  successMessage = null,
+  redirectUrl = null,
 }: {
   slug: string;
   title: string;
   questions: Question[];
+  embed?: boolean;
+  theme?: "light" | "dark" | "auto";
+  successMessage?: string | null;
+  redirectUrl?: string | null;
 }) {
   const total = questions.length;
-  const [state, dispatch] = useReducer(reducer, {
-    index: 0,
-    answers: {},
-    error: null,
-    phase: "filling",
-  });
+  const [state, dispatch] = useReducer(reducer, INITIAL);
 
   const current = questions[state.index];
   const isLast = state.index === total - 1;
+
+  // Only ever navigate to an http(s) URL (defense-in-depth; also validated on
+  // save). Anything else is ignored.
+  const safeRedirect =
+    redirectUrl && /^https?:\/\//i.test(redirectUrl.trim())
+      ? redirectUrl.trim()
+      : null;
+
+  // Theme: set data-theme on <html> so dark tokens cascade to the whole
+  // document (body background included). Also accept live theme changes from a
+  // host page via postMessage — so an embedder can re-sync when their site's
+  // theme toggles. Restores the prior value on unmount so leaving the fill page
+  // never strands another route in a theme it wasn't built for.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const el = document.documentElement;
+    const prev = el.getAttribute("data-theme");
+    el.setAttribute("data-theme", theme);
+    function onThemeMsg(e: MessageEvent) {
+      const next = (e.data as { type?: string; theme?: string } | null)?.theme;
+      if (
+        (e.data as { type?: string } | null)?.type === "simpleforms:theme" &&
+        typeof next === "string" &&
+        THEMES.has(next)
+      ) {
+        el.setAttribute("data-theme", next);
+      }
+    }
+    window.addEventListener("message", onThemeMsg);
+    return () => {
+      window.removeEventListener("message", onThemeMsg);
+      if (prev) el.setAttribute("data-theme", prev);
+      else el.removeAttribute("data-theme");
+    };
+  }, [theme]);
+
+  // Autofocus is blocked for cross-origin iframes until the user interacts, and
+  // attempting it logs a console warning. So in embed mode we don't autofocus
+  // until the first pointer/key event; after that, later fields focus normally.
+  // Standalone starts "engaged" so the first field focuses as before.
+  const [engaged, setEngaged] = useState(!embed);
+  useEffect(() => {
+    if (!embed || engaged) return;
+    const mark = () => setEngaged(true);
+    window.addEventListener("pointerdown", mark, { once: true });
+    window.addEventListener("keydown", mark, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", mark);
+      window.removeEventListener("keydown", mark);
+    };
+  }, [embed, engaged]);
+
+  // Embed mode: report our content height to the parent page so its <iframe>
+  // can resize to fit (no scrollbars, no fixed-height guessing). Re-measured on
+  // every content change via ResizeObserver, and re-bound when the phase/index
+  // changes (those swap the root element). Height-only message → safe to post.
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!embed) return;
+    const el = rootRef.current;
+    if (!el || typeof window === "undefined") return;
+    const post = () => {
+      const height = Math.ceil(el.getBoundingClientRect().height);
+      window.parent?.postMessage(
+        { type: "simpleforms:resize", slug, height },
+        "*",
+      );
+    };
+    post();
+    const ro =
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(post) : null;
+    ro?.observe(el);
+    window.addEventListener("load", post);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("load", post);
+    };
+  }, [embed, slug, state.phase, state.index]);
+
+  const rootClass = embed ? `${styles.root} ${styles.rootEmbed}` : styles.root;
 
   const submit = useCallback(
     async (answers: Record<string, unknown>) => {
@@ -93,6 +183,14 @@ export function FillExperience({
         });
         if (res.status === 201) {
           dispatch({ type: "SUBMIT_DONE" });
+          // Owner-configured redirect (validated http(s) on save). Brief beat on
+          // the success screen, then navigate the current context (the iframe,
+          // when embedded).
+          if (safeRedirect) {
+            setTimeout(() => {
+              window.location.assign(safeRedirect);
+            }, 900);
+          }
           return;
         }
         if (res.status === 404 || res.status === 409) {
@@ -113,7 +211,7 @@ export function FillExperience({
         });
       }
     },
-    [slug],
+    [slug, safeRedirect],
   );
 
   // Validate just the current question by generating a one-field validator.
@@ -137,28 +235,47 @@ export function FillExperience({
 
   // --- terminal states ----------------------------------------------------
   if (state.phase === "done") {
+    // Owner's custom message wins. Otherwise a sensible default that doesn't
+    // tell an embedded visitor to "close this tab" (they're on someone's site).
+    const body =
+      successMessage?.trim() ||
+      (safeRedirect
+        ? "Taking you back…"
+        : embed
+          ? "Your response was recorded."
+          : "Your response was recorded. You can close this tab.");
     return (
-      <div className={styles.root}>
+      <div className={rootClass} ref={rootRef}>
         <div className={styles.progress}>
           <div className={styles.progressBar} style={{ width: "100%" }} />
         </div>
-        <Nav title={title} step={null} />
+        {embed ? null : <Nav title={title} step={null} />}
         <div className={styles.centered}>
           <div className={styles.check}>✓</div>
           <div className={styles.bigTitle}>Thanks — that&rsquo;s submitted.</div>
-          <div className={styles.bigSub}>
-            Your response was recorded. You can close this tab.
-          </div>
+          <div className={styles.bigSub}>{body}</div>
+          {!safeRedirect ? (
+            <button
+              type="button"
+              className={styles.submitAnother}
+              onClick={() => {
+                setEngaged(!embed);
+                dispatch({ type: "RESET" });
+              }}
+            >
+              Submit another response
+            </button>
+          ) : null}
         </div>
-        <Footer title={title} />
+        <Footer title={title} embed={embed} />
       </div>
     );
   }
 
   if (state.phase === "closed") {
     return (
-      <div className={styles.root}>
-        <Nav title={title} step={null} />
+      <div className={rootClass} ref={rootRef}>
+        {embed ? null : <Nav title={title} step={null} />}
         <div className={styles.centered}>
           <div className={styles.bigTitle}>This form is closed.</div>
           <div className={styles.bigSub}>
@@ -166,7 +283,7 @@ export function FillExperience({
             with you.
           </div>
         </div>
-        <Footer title={title} />
+        <Footer title={title} embed={embed} />
       </div>
     );
   }
@@ -175,11 +292,11 @@ export function FillExperience({
   const pct = total === 0 ? 0 : (state.index / total) * 100;
 
   return (
-    <div className={styles.root}>
+    <div className={rootClass} ref={rootRef}>
       <div className={styles.progress}>
         <div className={styles.progressBar} style={{ width: `${pct}%` }} />
       </div>
-      <Nav title={title} step={`${state.index + 1} of ${total}`} />
+      {embed ? null : <Nav title={title} step={`${state.index + 1} of ${total}`} />}
 
       <div className={styles.stage}>
         <div className={`${styles.card} ${styles.enter}`} key={current.id}>
@@ -204,7 +321,7 @@ export function FillExperience({
                 dispatch({ type: "SET_ANSWER", id: current.id, value })
               }
               onEnter={advance}
-              autoFocus
+              autoFocus={engaged}
             />
           </div>
 
@@ -243,7 +360,7 @@ export function FillExperience({
         </div>
       </div>
 
-      <Footer title={title} />
+      <Footer title={title} embed={embed} />
     </div>
   );
 }
@@ -261,7 +378,26 @@ function Nav({ title, step }: { title: string; step: string | null }) {
   );
 }
 
-function Footer({ title }: { title: string }) {
+function Footer({ title, embed = false }: { title: string; embed?: boolean }) {
+  // In an embed the host page provides its own context, so we drop the form
+  // title and show a prominent bottom-right pill badge (logo + wordmark) that
+  // opens SimpleForms in a new tab — the attribution / soft-marketing surface.
+  if (embed) {
+    return (
+      <div className={styles.badgeWrap}>
+        <a
+          className={styles.badge}
+          href="/"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Made with SimpleForms"
+        >
+          <span className={styles.badgeMark} />
+          Made with <span className={styles.badgeName}>SimpleForms</span>
+        </a>
+      </div>
+    );
+  }
   return (
     <div className={styles.foot}>
       {title} · made with{" "}

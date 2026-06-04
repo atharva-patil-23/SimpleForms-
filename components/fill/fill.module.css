@@ -7,6 +7,23 @@
   min-height: 100vh;
 }
 
+/* Embed mode (inside an <iframe> on another site): the frame auto-resizes to
+   our content, so the root must wrap content height instead of filling the
+   viewport. Stage aligns to the top with tighter padding so a short form
+   doesn't sit in a tall, empty box. */
+.rootEmbed {
+  min-height: 0;
+}
+.rootEmbed .stage {
+  flex: 0 0 auto;
+  align-items: flex-start;
+  padding: 28px 32px 36px;
+}
+.rootEmbed .centered {
+  flex: 0 0 auto;
+  padding: 48px 32px 40px;
+}
+
 .progress {
   height: 3px;
   background: var(--line);
@@ -158,8 +175,8 @@ textarea.input {
   border-color: var(--faint);
 }
 .optionSelected {
-  background: var(--text);
-  border-color: var(--text);
+  background: var(--cobalt);
+  border-color: var(--cobalt);
   color: #fff;
 }
 .optionKey {
@@ -169,7 +186,7 @@ textarea.input {
   border: 1px solid var(--line);
   border-radius: 5px;
   padding: 1px 7px;
-  background: #fff;
+  background: var(--bg);
 }
 .optionSelected .optionKey {
   color: #fff;
@@ -238,6 +255,84 @@ textarea.input {
 .foot a {
   color: var(--mut);
   font-weight: 600;
+}
+.footEmbed {
+  padding: 8px 32px 20px;
+  text-align: center;
+}
+.footEmbed a {
+  color: var(--faint);
+  font-weight: 500;
+}
+.footEmbed a:hover {
+  color: var(--mut);
+}
+
+/* "Submit another" on the success screen (embed + standalone, no redirect). */
+.submitAnother {
+  margin-top: 22px;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 9px 18px;
+  cursor: pointer;
+  transition:
+    border-color 0.14s ease,
+    color 0.14s ease;
+}
+.submitAnother:hover {
+  border-color: var(--cobalt);
+  color: var(--cobalt-deep);
+}
+
+/* Prominent attribution pill for embeds — bottom-right, Tally-style but ours. */
+.badgeWrap {
+  display: flex;
+  justify-content: flex-end;
+  padding: 6px 20px 20px;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 15px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mut);
+  box-shadow: 0 2px 10px rgba(31, 32, 36, 0.08);
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+.badge:hover {
+  transform: translateY(-1px);
+  border-color: var(--faint);
+  color: var(--text);
+  box-shadow: 0 6px 18px rgba(31, 32, 36, 0.12);
+}
+.badgeName {
+  color: var(--cobalt);
+}
+.badgeMark {
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
+  background: var(--cobalt);
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge:hover {
+    transform: none;
+  }
 }
 
 /* Success + closed states share a centered layout. */

@@ -23,6 +23,42 @@
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
 }
 
+/*
+ * Dark theme for the public fill surface (used by embeds via ?theme=dark, and
+ * by ?theme=auto under a dark OS preference). The fill experience sets
+ * data-theme on <html>, so these overrides cascade to the whole document —
+ * including the body background — which is what stops an embedded form from
+ * being a glaring white box on a dark host. Cobalt is brightened for contrast
+ * on dark; the greyscale ramp inverts. Same token names, so no component
+ * needs to know which theme is active.
+ */
+:root[data-theme="dark"] {
+  --bg: #0f1014;
+  --side: #16171c;
+  --text: #ececf1;
+  --mut: #9a9ba3;
+  --faint: #65666e;
+  --line: #2a2b31;
+  --fill: #1a1b21;
+  --cobalt: #6d83ff;
+  --cobalt-deep: #5468f0;
+  --cobalt-tint: #1f2438;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="auto"] {
+    --bg: #0f1014;
+    --side: #16171c;
+    --text: #ececf1;
+    --mut: #9a9ba3;
+    --faint: #65666e;
+    --line: #2a2b31;
+    --fill: #1a1b21;
+    --cobalt: #6d83ff;
+    --cobalt-deep: #5468f0;
+    --cobalt-tint: #1f2438;
+  }
+}
+
 * {
   margin: 0;
   padding: 0;

@@ -26,11 +26,13 @@ export default async function EditFormPage({
   if (!user) redirect("/login");
 
   // Owner-scoped explicitly (the published-read RLS policy would otherwise
-  // expose other users' published forms here).
-  const [{ data: form }, { data: list }] = await Promise.all([
+  // expose other users' published forms here). The form select tries the
+  // post-submit columns and falls back if the migration hasn't been applied.
+  const FORM_BASE = "id, title, description, schema, status, public_slug";
+  const [formRes0, { data: list }] = await Promise.all([
     supabase
       .from("forms")
-      .select("id, title, description, schema, status, public_slug")
+      .select(`${FORM_BASE}, success_message, redirect_url`)
       .eq("id", id)
       .eq("owner_id", user.id)
       .maybeSingle(),
@@ -40,6 +42,27 @@ export default async function EditFormPage({
       .eq("owner_id", user.id)
       .order("updated_at", { ascending: false }),
   ]);
+  let formRes = formRes0;
+  if (formRes.error) {
+    formRes = await supabase
+      .from("forms")
+      .select(FORM_BASE)
+      .eq("id", id)
+      .eq("owner_id", user.id)
+      .maybeSingle();
+  }
+  const form = formRes.data as
+    | {
+        id: string;
+        title: string;
+        description: string | null;
+        schema: Question[];
+        status: "draft" | "published";
+        public_slug: string | null;
+        success_message?: string | null;
+        redirect_url?: string | null;
+      }
+    | null;
 
   if (!form) notFound();
 
@@ -68,6 +91,8 @@ export default async function EditFormPage({
         initialQuestions={questions}
         status={form.status}
         slug={form.public_slug}
+        initialSuccessMessage={form.success_message ?? ""}
+        initialRedirectUrl={form.redirect_url ?? ""}
       />
     </AppShell>
   );

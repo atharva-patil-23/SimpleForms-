@@ -41,6 +41,8 @@ interface Props {
   initialQuestions: EditQuestion[];
   status: "draft" | "published";
   slug: string | null;
+  initialSuccessMessage?: string;
+  initialRedirectUrl?: string;
 }
 
 const SELECT_TYPES: QuestionType[] = ["single_select", "multi_select"];
@@ -63,6 +65,8 @@ export function FormEditor({
   initialQuestions,
   status: initialStatus,
   slug: initialSlug,
+  initialSuccessMessage = "",
+  initialRedirectUrl = "",
 }: Props) {
   const router = useRouter();
   const [title, setTitle] = useState(initialTitle);
@@ -70,6 +74,8 @@ export function FormEditor({
   const [questions, setQuestions] = useState<EditQuestion[]>(initialQuestions);
   const [status, setStatus] = useState(initialStatus);
   const [slug, setSlug] = useState(initialSlug);
+  const [successMessage, setSuccessMessage] = useState(initialSuccessMessage);
+  const [redirectUrl, setRedirectUrl] = useState(initialRedirectUrl);
 
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">(
     "idle",
@@ -78,6 +84,8 @@ export function FormEditor({
   const [addOpen, setAddOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [embedOpen, setEmbedOpen] = useState(false);
+  const [embedCopied, setEmbedCopied] = useState(false);
   // Empty on the server and the first client render (so the share link
   // hydrates without a mismatch), upgraded to the absolute origin after mount.
   const [origin, setOrigin] = useState("");
@@ -154,6 +162,8 @@ export function FormEditor({
       title,
       description: description || null,
       schema: serialize(),
+      successMessage: successMessage || null,
+      redirectUrl: redirectUrl || null,
     });
     if (res.ok) {
       setSaveState("saved");
@@ -197,6 +207,19 @@ export function FormEditor({
   }
 
   const shareUrl = slug ? `${origin}/f/${slug}` : null;
+  const embedSnippet =
+    slug && origin ? buildEmbedSnippet(origin, slug, title) : "";
+
+  async function copyEmbed() {
+    if (!embedSnippet) return;
+    try {
+      await navigator.clipboard.writeText(embedSnippet);
+      setEmbedCopied(true);
+      setTimeout(() => setEmbedCopied(false), 1600);
+    } catch {
+      window.prompt("Copy this embed code:", embedSnippet);
+    }
+  }
 
   return (
     <main className={shell.main}>
@@ -285,12 +308,80 @@ export function FormEditor({
             ) : null}
           </div>
 
+          <div className={styles.afterSubmit}>
+            <div className={styles.afterSubmitTitle}>After submit</div>
+            <label className={styles.afterLabel} htmlFor="success-msg">
+              Success message <span>(optional)</span>
+            </label>
+            <textarea
+              id="success-msg"
+              className={styles.afterTextarea}
+              value={successMessage}
+              placeholder="Thanks — I&rsquo;ll get back to you soon."
+              rows={2}
+              onChange={(e) => {
+                setSuccessMessage(e.target.value);
+                markDirty();
+              }}
+            />
+            <label className={styles.afterLabel} htmlFor="redirect-url">
+              Redirect URL <span>(optional)</span>
+            </label>
+            <input
+              id="redirect-url"
+              className={styles.afterInput}
+              value={redirectUrl}
+              placeholder="https://yoursite.com/thank-you"
+              onChange={(e) => {
+                setRedirectUrl(e.target.value);
+                markDirty();
+              }}
+            />
+            <div className={styles.afterHint}>
+              Set a redirect to send respondents to your own page after
+              submitting. Leave it blank to show the success message instead.
+            </div>
+          </div>
+
           {status === "published" && shareUrl ? (
             <div className={styles.shareBox}>
               <div className={styles.shareLabel}>Share link</div>
               <a className={styles.shareUrl} href={shareUrl} target="_blank" rel="noreferrer">
                 {shareUrl}
               </a>
+
+              <button
+                type="button"
+                className={styles.embedToggle}
+                onClick={() => setEmbedOpen((o) => !o)}
+                aria-expanded={embedOpen}
+              >
+                <span className={styles.embedChevron} data-open={embedOpen}>
+                  ▸
+                </span>
+                Embed on a website
+              </button>
+
+              {embedOpen ? (
+                <div className={styles.embedBox}>
+                  <div className={styles.embedHead}>
+                    <span className={styles.embedHint}>
+                      Paste this where you want the form to appear. It resizes
+                      itself to fit.
+                    </span>
+                    <button
+                      type="button"
+                      className={styles.embedCopy}
+                      onClick={copyEmbed}
+                    >
+                      {embedCopied ? "Copied ✓" : "Copy code"}
+                    </button>
+                  </div>
+                  <pre className={styles.embedCode}>
+                    <code>{embedSnippet}</code>
+                  </pre>
+                </div>
+              ) : null}
             </div>
           ) : null}
 
@@ -326,6 +417,30 @@ export function FormEditor({
       />
     </main>
   );
+}
+
+/**
+ * Build the copy-paste embed snippet: an auto-sizing <iframe> pointing at the
+ * form's ?embed=1 render, plus a tiny listener that resizes the frame when the
+ * embedded page posts its height. The listener is origin-checked so only
+ * messages from this SimpleForms deployment can affect the frame.
+ */
+function buildEmbedSnippet(origin: string, slug: string, title: string): string {
+  const src = `${origin}/f/${slug}?embed=1`;
+  const safeTitle = (title || "Form").replace(/"/g, "'");
+  return `<!-- SimpleForms embed -->
+<iframe src="${src}" title="${safeTitle}" loading="lazy" style="width:1px;min-width:100%;border:0;" height="600"></iframe>
+<script>
+(function () {
+  window.addEventListener("message", function (e) {
+    if (e.origin !== "${origin}") return;
+    var d = e.data || {};
+    if (d.type !== "simpleforms:resize" || typeof d.height !== "number") return;
+    var f = document.querySelector('iframe[src*="/f/${slug}?embed=1"]');
+    if (f) f.style.height = d.height + "px";
+  });
+})();
+</script>`;
 }
 
 const TYPE_LABEL: Record<QuestionType, string> = {
